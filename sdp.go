@@ -156,7 +156,7 @@ func addFingerprints(d *sdp.SessionDescription, c Certificate) error {
 	return nil
 }
 
-func populateLocalCandidates(orig *SessionDescription, pendingLocalDescription *SessionDescription, i *ICEGatherer, iceGatheringState ICEGatheringState) *SessionDescription {
+func populateLocalCandidates(log logging.LeveledLogger, orig *SessionDescription, pendingLocalDescription *SessionDescription, i *ICEGatherer, iceGatheringState ICEGatheringState) *SessionDescription {
 	if orig == nil {
 		return nil
 	} else if i == nil {
@@ -168,14 +168,18 @@ func populateLocalCandidates(orig *SessionDescription, pendingLocalDescription *
 		return orig
 	}
 
+
 	parsed := pendingLocalDescription.parsed
+	sdp, _ := parsed.Marshal()
+    log.Warnf("Candidates before: %v", string(sdp))
 	for _, m := range parsed.MediaDescriptions {
 		addCandidatesToMediaDescriptions(candidates, m, iceGatheringState)
 	}
-	sdp, err := parsed.Marshal()
+	sdp, err = parsed.Marshal()
 	if err != nil {
 		return orig
 	}
+    log.Warnf("Candidates after: %v", string(sdp))
 
 	return &SessionDescription{
 		SDP:  string(sdp),
